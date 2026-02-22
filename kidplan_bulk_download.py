@@ -4,10 +4,8 @@ import hashlib
 import html
 import os
 import re
-import sys
 import time
 from html.parser import HTMLParser
-from http.cookiejar import MozillaCookieJar
 from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
 
 import requests
@@ -221,20 +219,9 @@ def slugify(value):
     return slug or "album"
 
 
-def load_cookies(cookie_path):
-    if not cookie_path:
-        return None
-    jar = MozillaCookieJar()
-    jar.load(cookie_path, ignore_discard=True, ignore_expires=True)
-    return jar
-
-
-def build_session(cookie_path):
+def build_session():
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
-    cookie_jar = load_cookies(cookie_path)
-    if cookie_jar is not None:
-        session.cookies.update(cookie_jar)
     return session
 
 
@@ -337,6 +324,14 @@ def guess_filename(url, fallback):
     return name
 
 
+def get_image_extension(url):
+    parsed = urlparse(url)
+    name = os.path.basename(parsed.path)
+    if "." in name:
+        return "." + name.split(".")[-1].lower()
+    return ".jpg"
+
+
 def download_file(session, url, dest_path, timeout=60):
     resp = session.get(url, stream=True, timeout=timeout)
     if resp.status_code != 200:
@@ -381,11 +376,7 @@ def ensure_manifest(path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Bulk download Kidplan album images using cookies or env-based login."
-    )
-    parser.add_argument(
-        "--cookie-file",
-        help="Path to Netscape cookie file exported from Chrome",
+        description="Bulk download Kidplan album images using .env login."
     )
     parser.add_argument(
         "--album-url",
@@ -413,24 +404,15 @@ def main():
         help="Disable global dedupe of image URLs across albums",
     )
     parser.add_argument(
-        "--verbose",
+        "--quiet",
         action="store_true",
-        help="Print each request and download action",
-    )
-    parser.add_argument(
-        "--fast-skip",
-        action="store_true",
-        help="Skip downloads if destination file exists without size check",
+        help="Reduce log output",
     )
     parser.add_argument(
         "--manifest",
         default="kidplan-manifest.txt",
         help="Path to manifest file for URL-level skip tracking",
     )
-    parser.add_argument(
-        "--username-env", help="Env var with username (email/member number)"
-    )
-    parser.add_argument("--password-env", help="Env var with password")
     parser.add_argument("--kid", help="Kindergarten id to use if multiple")
     parser.add_argument("--kid-name", help="Kindergarten name to use if multiple")
     parser.add_argument(
@@ -450,32 +432,28 @@ def main():
     )
     args = parser.parse_args()
 
-    session = build_session(args.cookie_file)
-    username = None
-    password = None
-    if args.username_env and args.password_env:
-        username = os.environ.get(args.username_env)
-        password = os.environ.get(args.password_env)
+    session = build_session()
+    env_file_values = load_env_file(args.env_file) if args.env_file else {}
+    username = os.environ.get(args.username_key) or env_file_values.get(
+        args.username_key
+    )
+    password = os.environ.get(args.password_key) or env_file_values.get(
+        args.password_key
+    )
     if not username or not password:
-        env_file_values = load_env_file(args.env_file) if args.env_file else {}
-        username = os.environ.get(args.username_key) or env_file_values.get(
-            args.username_key
-        )
-        password = os.environ.get(args.password_key) or env_file_values.get(
-            args.password_key
-        )
+        raise RuntimeError("Username/password not found in .env or environment")
 
-    if username and password:
-        login_with_env(
-            session,
-            username,
-            password,
-            kid_id=args.kid,
-            kid_name=args.kid_name,
-            return_url=args.album_url,
-        )
+    login_with_env(
+        session,
+        username,
+        password,
+        kid_id=args.kid,
+        kid_name=args.kid_name,
+        return_url=args.album_url,
+    )
     ensure_dir(args.out_dir)
 
+    verbose = not args.quiet
     print(f"Fetching album list: {args.album_url}")
     list_html = request_text(session, args.album_url)
     album_links = extract_album_links(list_html, args.album_url)
@@ -492,7 +470,7 @@ def main():
             )
         print("Album list HTML is dynamic; falling back to JSON endpoint.")
         albums = fetch_albums_json(
-            session, args.album_url, delay=args.delay, verbose=args.verbose
+            session, args.album_url, delay=args.delay, verbose=verbose
         )
         for album in albums:
             url = normalize_url(album.get("AlbumUrl"), args.album_url)
@@ -513,13 +491,13 @@ def main():
     manifest_path = args.manifest
     ensure_manifest(manifest_path)
     manifest_entries = load_manifest(manifest_path)
-    if manifest_entries and args.verbose:
+    if manifest_entries and verbose:
         print(f"Loaded {len(manifest_entries)} manifest entries")
     for idx, album_item in enumerate(album_items, 1):
         album_url = album_item["url"]
         print(f"[{idx}/{len(album_items)}] {album_url}")
         time.sleep(args.delay)
-        if args.verbose:
+        if verbose:
             print(f"  fetch album page: {album_url}")
         album_html = request_text(session, album_url)
         title = extract_title(album_html) or album_item.get("title") or f"album-{idx}"
@@ -527,7 +505,7 @@ def main():
         ensure_dir(album_dir)
 
         image_urls = extract_image_urls(album_html, album_url)
-        if args.verbose:
+        if verbose:
             print(f"  extracted {len(image_urls)} image urls")
         if args.limit and len(image_urls) > args.limit:
             image_urls = image_urls[: args.limit]
@@ -538,20 +516,24 @@ def main():
             image_id = extract_image_id(image_url)
             if not args.no_dedupe:
                 if image_url in seen_urls:
-                    print(f"  skipped duplicate url: {image_url}")
+                    if verbose:
+                        print(f"  skipped duplicate url: {image_url}")
                     continue
                 seen_urls.add(image_url)
             if manifest_entries and image_id and image_id in manifest_entries:
-                if args.verbose:
+                if verbose:
                     print(f"  skipped manifest url: {image_url}")
                 continue
             time.sleep(args.delay)
-            digest = hashlib.sha1(image_url.encode("utf-8")).hexdigest()[:10]
-            fallback = f"image-{i:04d}-{digest}.jpg"
-            filename = guess_filename(image_url, fallback)
+            if image_id:
+                filename = f"id-{image_id}{get_image_extension(image_url)}"
+            else:
+                digest = hashlib.sha1(image_url.encode("utf-8")).hexdigest()[:10]
+                fallback = f"image-{i:04d}-{digest}.jpg"
+                filename = guess_filename(image_url, fallback)
             dest_path = os.path.join(album_dir, filename)
-            if args.fast_skip or (manifest_path and os.path.exists(dest_path)):
-                if args.verbose:
+            if manifest_path and os.path.exists(dest_path):
+                if verbose:
                     print(f"  fast-skip exists: {filename}")
                 if manifest_path and image_id and image_id not in manifest_entries:
                     append_manifest(manifest_path, image_id)
@@ -561,7 +543,7 @@ def main():
                 print(f"  DRY RUN {image_url} -> {dest_path}")
                 continue
             try:
-                if args.verbose:
+                if verbose:
                     print(f"  download {i}/{len(image_urls)}: {image_url}")
                 status = download_file(session, image_url, dest_path)
                 print(f"  {status}: {filename}")
