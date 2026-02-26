@@ -1,0 +1,74 @@
+{
+  "types": {
+    "feat": {
+      "description": "A new feature",
+      "title": "Features"
+    },
+    "fix": {
+      "description": "A bug fix",
+      "title": "Bug Fixes"
+    },
+    "docs": {
+      "description": "Documentation only changes",
+      "title": "Documentation",
+      "hidden": true
+    },
+    "style": {
+      "description": "Changes that do not affect the meaning of the code",
+      "title": "Styles",
+      "hidden": true
+    },
+    "refactor": {
+      "description": "A code change that neither fixes a bug nor adds a feature",
+      "title": "Code Refactoring"
+    },
+    "perf": {
+      "description": "A code change that improves performance",
+      "title": "Performance Improvements"
+    },
+    "test": {
+      "description": "Adding missing tests or correcting existing tests",
+      "title": "Tests",
+      "hidden": true
+    },
+    "build": {
+      "description": "Changes that affect the build system or external dependencies",
+      "title": "Builds",
+      "hidden": true
+    },
+    "ci": {
+      "description": "Changes to our CI configuration files and scripts",
+      "title": "Continuous Integrations",
+      "hidden": true
+    },
+    "chore": {
+      "description": "Other changes that don't modify src or test files",
+      "title": "Chores",
+      "hidden": true
+    },
+    "revert": {
+      "description": "Reverts a previous commit",
+      "title": "Reverts"
+    }
+  },
+  "bumpFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    },
+    {
+      "filename": "src-tauri/Cargo.toml",
+      "updater": "scripts/cargo-version-updater.js"
+    },
+    {
+      "filename": "src-tauri/tauri.conf.json",
+      "type": "json"
+    }
+  ],
+  "packageFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    }
+  ]
+}

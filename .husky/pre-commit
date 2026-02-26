@@ -1,0 +1,2 @@
+# Run type checking before commit
+npm run build
