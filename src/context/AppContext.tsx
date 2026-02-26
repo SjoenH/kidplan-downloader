@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import type {
@@ -14,6 +15,7 @@ import type {
   DownloadResult,
   AppPage,
 } from "../types";
+import { checkForUpdates } from "../utils/updater";
 
 interface AppContextType {
   // Navigation
@@ -69,6 +71,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [progressLog, setProgressLog] = useState<DownloadProgress[]>([]);
   const [result, setResult] = useState<DownloadResult | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Check for updates on app startup
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        await checkForUpdates();
+      } catch (err) {
+        console.error("Update check failed:", err);
+      }
+    };
+    
+    checkUpdates();
+  }, []);
 
   const toggleAlbum = useCallback((id: string) => {
     setSelectedAlbumIds((prev) => {
