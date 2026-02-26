@@ -1,52 +1,38 @@
 # Kidplan Album Downloader
 
-Downloads all images from Kidplan albums using your login credentials in a local `.env` file.
+Desktop app for bulk downloading photo albums from Kidplan.
+
+Built with [Tauri 2](https://tauri.app/) (Rust backend) + React + TypeScript.
 
 ## Requirements
 
-- Python 3.9+
-- `requests`
+- [Node.js](https://nodejs.org/) 20+
+- [Rust](https://www.rust-lang.org/tools/install) toolchain
 
-## Setup
-
-Create a `.env` file next to the script:
+## Development
 
 ```
-KIDPLAN_USER=you@example.com
-KIDPLAN_PASS=your_password_here
+npm install
+npm run tauri dev
 ```
 
-Install dependencies (use a virtualenv if needed):
+## Build
 
 ```
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install requests
+npm run tauri build
 ```
 
-## Run
+The built app will be at `src-tauri/target/release/bundle/`.
 
-```
-python3 kidplan_bulk_download.py
-```
+## CLI (legacy)
 
-Quick start (first run):
+The original Python CLI script is still available on the `main` branch. See `kidplan_bulk_download.py`.
 
-```
-python3 kidplan_bulk_download.py --dry-run
-python3 kidplan_bulk_download.py
-```
+## How it works
 
-Optional flags:
+1. Log in with your Kidplan email and password
+2. Select which albums to download
+3. Adjust settings (output directory, rate limiting, per-album limits)
+4. Download - progress is shown in real time
 
-- `--dry-run` to preview without downloading
-- `--quiet` to reduce log output
-- `--limit 50` to cap images per album
-- `--kid 12345` or `--kid-name "Name"` if you have multiple kindergartens
-- `--manifest kidplan-manifest.txt` to track downloaded image ids (default)
-
-## Notes
-
-- The script stores downloaded image ids in `kidplan-manifest.txt` to avoid re-downloading.
-- Filenames are saved as `id-<uuid>.<ext>` to align with manifest entries.
-- The output directory defaults to `kidplan-albums`.
+Downloaded images are tracked in `kidplan-manifest.txt` to avoid re-downloading on subsequent runs.
