@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useApp } from "../context/AppContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import type { DownloadProgress, DownloadResult } from "../types";
 
 export default function DownloadPage() {
@@ -18,6 +19,8 @@ export default function DownloadPage() {
     setIsDownloading,
     setPage,
   } = useApp();
+
+  const { t } = useLanguage();
 
   const logEndRef = useRef<HTMLDivElement>(null);
   const hasAutoStarted = useRef(false);
@@ -122,17 +125,17 @@ export default function DownloadPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-800">
               {isDownloading
-                ? "Downloading..."
+                ? t.downloading
                 : result
-                ? "Download Complete"
-                : "Ready to Download"}
+                ? t.downloadComplete
+                : t.readyToDownload}
             </h1>
             <p className="text-sm text-gray-500">
               {hasStarted
-                ? `${downloadedCount} downloaded, ${skippedCount} skipped${
-                    failedCount > 0 ? `, ${failedCount} failed` : ""
+                ? `${downloadedCount} ${t.downloaded}, ${skippedCount} ${t.skipped}${
+                    failedCount > 0 ? `, ${failedCount} ${t.failed}` : ""
                   }`
-                : `${selectedAlbumIds.size} albums selected`}
+                : `${selectedAlbumIds.size} ${t.albumsSelectedCount}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -140,14 +143,14 @@ export default function DownloadPage() {
               onClick={() => setPage("albums")}
               className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
             >
-              Back to Albums
+              {t.backToAlbums}
             </button>
             {isDownloading ? (
               <button
                 onClick={handleCancel}
                 className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition"
               >
-                Cancel
+                {t.cancel}
               </button>
             ) : (
               <>
@@ -156,7 +159,7 @@ export default function DownloadPage() {
                     onClick={handleStart}
                     className="px-4 py-2 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
                   >
-                    Retry Failed ({failedCount})
+                    {t.retryFailed} ({failedCount})
                   </button>
                 )}
                 <button
@@ -164,7 +167,7 @@ export default function DownloadPage() {
                   disabled={selectedAlbumIds.size === 0}
                   className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
-                  {result ? "Download Again" : "Start Download"}
+                  {result ? t.downloadAgain : t.startDownload}
                 </button>
               </>
             )}
@@ -180,7 +183,7 @@ export default function DownloadPage() {
               {lastProgress.album_title}
             </span>
             <span className="text-gray-400 shrink-0 ml-2">
-              Album {lastProgress.album_index}/{lastProgress.album_total}
+              {t.albumProgress} {lastProgress.album_index}/{lastProgress.album_total}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -203,13 +206,13 @@ export default function DownloadPage() {
       {result && !isDownloading && (
         <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-md p-4">
           <h3 className="font-medium text-green-800 mb-2">
-            Download finished
+            {t.downloadFinished}
           </h3>
           <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
-            <div>Albums: {result.total_albums}</div>
-            <div>Downloaded: {result.total_images}</div>
-            <div>Skipped: {result.skipped}</div>
-            <div>Failed: {result.failed}</div>
+            <div>{t.totalAlbums}: {result.total_albums}</div>
+            <div>{t.totalImages}: {result.total_images}</div>
+            <div>{t.skipped.charAt(0).toUpperCase() + t.skipped.slice(1)}: {result.skipped}</div>
+            <div>{t.failed.charAt(0).toUpperCase() + t.failed.slice(1)}: {result.failed}</div>
           </div>
         </div>
       )}
@@ -218,7 +221,7 @@ export default function DownloadPage() {
       {!hasStarted && !isDownloading && (
         <div className="flex items-center justify-center flex-1">
           <p className="text-gray-400">
-            Click "Start Download" to begin
+            {t.clickStartDownload}
           </p>
         </div>
       )}

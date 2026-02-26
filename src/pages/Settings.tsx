@@ -1,8 +1,11 @@
 import { useApp } from "../context/AppContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import { open } from "@tauri-apps/plugin-dialog";
+import type { Language } from "../i18n/translations";
 
 export default function SettingsPage() {
   const { settings, setSettings, setPage } = useApp();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -20,12 +23,12 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">Settings</h1>
+          <h1 className="text-xl font-bold text-gray-800">{t.settingsTitle}</h1>
           <button
             onClick={() => setPage("albums")}
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
-            Done
+            {t.done}
           </button>
         </div>
       </div>
@@ -35,7 +38,24 @@ export default function SettingsPage() {
         <div className="max-w-md space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Output directory
+              {t.language}
+            </label>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="en">{t.english}</option>
+              <option value="no">{t.norwegian}</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              {t.languageHelp}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t.outputDirectory}
             </label>
             <div className="flex gap-2">
               <input
@@ -50,17 +70,17 @@ export default function SettingsPage() {
                 onClick={handleBrowse}
                 className="px-4 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition whitespace-nowrap"
               >
-                Browse...
+                {t.browse}
               </button>
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              Default: ~/Downloads/kidplan-albums/
+              {t.outputDirHelp}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Delay between requests (ms)
+              {t.delayBetweenRequests}
             </label>
             <input
               type="number"
@@ -76,14 +96,13 @@ export default function SettingsPage() {
               step={50}
             />
             <p className="text-xs text-gray-400 mt-1">
-              Adds a delay between image downloads to avoid overloading the
-              server. Default: 200ms.
+              {t.delayHelp}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Max images per album
+              {t.maxImagesPerAlbum}
             </label>
             <input
               type="number"
@@ -101,7 +120,7 @@ export default function SettingsPage() {
               min={0}
             />
             <p className="text-xs text-gray-400 mt-1">
-              Set to 0 for no limit.
+              {t.maxImagesHelp}
             </p>
           </div>
         </div>

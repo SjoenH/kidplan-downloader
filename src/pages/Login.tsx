@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { load, Store } from "@tauri-apps/plugin-store";
 import { useApp } from "../context/AppContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import type { Kindergarten } from "../types";
 
 export default function LoginPage() {
@@ -13,6 +14,8 @@ export default function LoginPage() {
     setSelectedKid,
     setPage,
   } = useApp();
+  
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -110,10 +113,10 @@ export default function LoginPage() {
       <div className="w-full max-w-sm mx-auto">
         <div className="bg-white rounded-lg shadow-md p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-1 text-center">
-            Kidplan Downloader
+            {t.loginTitle}
           </h1>
           <p className="text-gray-500 text-sm mb-6 text-center">
-            Log in to download album photos
+            {t.loginSubtitle}
           </p>
 
           {error && (
@@ -126,28 +129,28 @@ export default function LoginPage() {
             <form onSubmit={handleFetchKids} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  {t.email}
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                   required
                   disabled={loading}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  {t.password}
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Your password"
+                  placeholder={t.passwordPlaceholder}
                   required
                   disabled={loading}
                 />
@@ -162,7 +165,7 @@ export default function LoginPage() {
                   disabled={loading}
                 />
                 <label htmlFor="rememberMe" className="text-sm text-gray-700">
-                  Remember my credentials
+                  {t.rememberMe}
                 </label>
               </div>
               <button
@@ -170,7 +173,7 @@ export default function LoginPage() {
                 disabled={loading || !email || !password}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? "Logging in..." : "Log In"}
+                {loading ? t.loggingIn : t.logIn}
               </button>
             </form>
           )}
@@ -178,7 +181,7 @@ export default function LoginPage() {
           {step === "select_kid" && (
             <form onSubmit={handleSelectKid} className="space-y-4">
               <p className="text-sm text-gray-600">
-                Multiple kindergartens found. Select one:
+                {t.multipleKindergartens}
               </p>
               <div className="space-y-2">
                 {kindergartens.map((kid) => (
@@ -209,14 +212,14 @@ export default function LoginPage() {
                 disabled={loading || !selectedKid}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? "Logging in..." : "Continue"}
+                {loading ? t.loggingIn : t.continue}
               </button>
               <button
                 type="button"
                 onClick={() => setStep("credentials")}
                 className="w-full text-gray-500 text-sm hover:text-gray-700"
               >
-                Back
+                {t.back}
               </button>
             </form>
           )}

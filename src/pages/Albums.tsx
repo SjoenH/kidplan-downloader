@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useApp } from "../context/AppContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import type { Album } from "../types";
 
 export default function AlbumsPage() {
@@ -13,6 +14,8 @@ export default function AlbumsPage() {
     deselectAllAlbums,
     setPage,
   } = useApp();
+  
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,10 +47,10 @@ export default function AlbumsPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Albums</h1>
+            <h1 className="text-xl font-bold text-gray-800">{t.albums}</h1>
             <p className="text-sm text-gray-500">
-              {albums.length} albums found
-              {selectedCount > 0 && ` \u00B7 ${selectedCount} selected`}
+              {albums.length} {t.albumsFound}
+              {selectedCount > 0 && ` \u00B7 ${selectedCount} ${t.selected}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -55,14 +58,14 @@ export default function AlbumsPage() {
               onClick={() => setPage("settings")}
               className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
             >
-              Settings
+              {t.settings}
             </button>
             <button
               onClick={() => setPage("download")}
               disabled={selectedCount === 0}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              Download ({selectedCount})
+              {t.download} ({selectedCount})
             </button>
           </div>
         </div>
@@ -75,7 +78,7 @@ export default function AlbumsPage() {
           className="text-sm text-blue-600 hover:text-blue-800"
           disabled={albums.length === 0}
         >
-          {allSelected ? "Deselect all" : "Select all"}
+          {allSelected ? t.deselectAll : t.selectAll}
         </button>
         <span className="text-gray-300">|</span>
         <button
@@ -83,7 +86,7 @@ export default function AlbumsPage() {
           className="text-sm text-gray-500 hover:text-gray-700"
           disabled={loading}
         >
-          {loading ? "Loading..." : "Refresh"}
+          {loading ? t.loading : t.refresh}
         </button>
       </div>
 
@@ -99,7 +102,7 @@ export default function AlbumsPage() {
         <div className="flex items-center justify-center flex-1">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-gray-500">Fetching albums...</p>
+            <p className="text-gray-500">{t.fetchingAlbums}</p>
           </div>
         </div>
       )}
@@ -107,7 +110,7 @@ export default function AlbumsPage() {
       {/* Album list */}
       {!loading && albums.length === 0 && !error && (
         <div className="flex items-center justify-center flex-1">
-          <p className="text-gray-400">No albums found</p>
+          <p className="text-gray-400">{t.noAlbumsFound}</p>
         </div>
       )}
 
@@ -135,7 +138,7 @@ export default function AlbumsPage() {
               </div>
               {album.image_count != null && (
                 <span className="text-gray-400 text-xs ml-2 shrink-0">
-                  {album.image_count} images
+                  {album.image_count} {t.images}
                 </span>
               )}
             </label>
