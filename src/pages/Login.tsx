@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { load, Store } from "@tauri-apps/plugin-store";
 import { useApp } from "../context/AppContext";
 import type { Kindergarten } from "../types";
 
@@ -15,9 +16,41 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"credentials" | "select_kid">("credentials");
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      try {
+        const store = await load("credentials.json");
+        const savedEmail = await store.get<string>("email");
+        const savedPassword = await store.get<string>("password");
+        if (savedEmail && savedPassword) {
+          setEmail(savedEmail);
+          setPassword(savedPassword);
+          setRememberMe(true);
+        }
+      } catch (err) {
+        console.log("No saved credentials found");
+      }
+    };
+    loadSavedCredentials();
+  }, []);
+
+  const saveCredentials = async (store: Store) => {
+    await store.set("email", email);
+    await store.set("password", password);
+    await store.save();
+  };
+
+  const clearCredentials = async (store: Store) => {
+    await store.delete("email");
+    await store.delete("password");
+    await store.save();
+  };
 
   const handleFetchKids = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +62,15 @@ export default function LoginPage() {
       });
       setCredentials({ email, password });
       setKindergartens(kids);
+      
+      // Save or clear credentials based on remember me checkbox
+      const store = await load("credentials.json");
+      if (rememberMe) {
+        await saveCredentials(store);
+      } else {
+        await clearCredentials(store);
+      }
+      
       if (kids.length === 1) {
         setSelectedKid(kids[0]);
         await doLogin(kids[0].id);
@@ -109,6 +151,19 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                 />
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="mr-2"
+                  disabled={loading}
+                />
+                <label htmlFor="rememberMe" className="text-sm text-gray-700">
+                  Remember my credentials
+                </label>
               </div>
               <button
                 type="submit"
