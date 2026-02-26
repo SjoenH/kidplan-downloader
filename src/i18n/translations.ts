@@ -64,6 +64,8 @@ export interface Translations {
   maxImagesHelp: string;
   language: string;
   languageHelp: string;
+  checkForUpdates: string;
+  checkingForUpdates: string;
   
   // Languages
   english: string;
@@ -135,6 +137,8 @@ export const translations: Record<Language, Translations> = {
     maxImagesHelp: "Set to 0 for no limit.",
     language: "Language",
     languageHelp: "Choose your preferred language",
+    checkForUpdates: "Check for Updates",
+    checkingForUpdates: "Checking for updates...",
     
     // Languages
     english: "English",
@@ -204,6 +208,8 @@ export const translations: Record<Language, Translations> = {
     maxImagesHelp: "Sett til 0 for ingen grense.",
     language: "Språk",
     languageHelp: "Velg ditt foretrukne språk",
+    checkForUpdates: "Se etter oppdateringer",
+    checkingForUpdates: "Søker etter oppdateringer...",
     
     // Languages
     english: "Engelsk",

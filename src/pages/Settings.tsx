@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { open } from "@tauri-apps/plugin-dialog";
+import { checkForUpdates } from "../utils/updater";
 import type { Language } from "../i18n/translations";
 
 export default function SettingsPage() {
   const { settings, setSettings, setPage } = useApp();
   const { language, setLanguage, t } = useLanguage();
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -15,6 +18,15 @@ export default function SettingsPage() {
     });
     if (selected && typeof selected === "string") {
       setSettings({ ...settings, out_dir: selected });
+    }
+  };
+
+  const handleCheckUpdates = async () => {
+    setCheckingUpdates(true);
+    try {
+      await checkForUpdates();
+    } finally {
+      setCheckingUpdates(false);
     }
   };
 
@@ -122,6 +134,16 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-400 mt-1">
               {t.maxImagesHelp}
             </p>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <button
+              onClick={handleCheckUpdates}
+              disabled={checkingUpdates}
+              className="w-full px-4 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {checkingUpdates ? t.checkingForUpdates : t.checkForUpdates}
+            </button>
           </div>
         </div>
       </div>
