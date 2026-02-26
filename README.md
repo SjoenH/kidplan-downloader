@@ -27,6 +27,22 @@ Last ned siste versjon for din plattform fra [Releases](https://github.com/Sjoen
 - **Windows**: `.msi` eller `.exe` installasjonsfil
 - **Linux**: `.AppImage` eller `.deb` pakke
 
+### macOS-brukere: Første gangs åpning
+
+Siden appen ikke er signert med et Apple Developer-sertifikat, vil macOS Gatekeeper blokkere den første gangen. For å åpne appen:
+
+**Alternativ 1: Høyreklikk-metoden**
+1. Høyreklikk (eller Ctrl+klikk) på appen
+2. Velg "Åpne" fra menyen
+3. Klikk "Åpne" i dialogboksen
+
+**Alternativ 2: Terminal-metoden**
+```bash
+xattr -cr "/Applications/Kidplan Downloader.app"
+```
+
+Du trenger bare å gjøre dette én gang. Deretter vil appen åpne normalt.
+
 ### Første gangs oppsett
 
 1. Start applikasjonen
@@ -170,6 +186,22 @@ Download the latest version for your platform from the [Releases](https://github
 - **macOS**: `.dmg` file (Apple Silicon or Intel)
 - **Windows**: `.msi` or `.exe` installer
 - **Linux**: `.AppImage` or `.deb` package
+
+#### macOS Users: First-time Opening
+
+Since the app is not signed with an Apple Developer certificate, macOS Gatekeeper will block it the first time. To open the app:
+
+**Option 1: Right-click method**
+1. Right-click (or Ctrl+click) on the app
+2. Select "Open" from the menu
+3. Click "Open" in the dialog
+
+**Option 2: Terminal method**
+```bash
+xattr -cr "/Applications/Kidplan Downloader.app"
+```
+
+You only need to do this once. The app will then open normally afterward.
 
 #### First-time Setup
 
