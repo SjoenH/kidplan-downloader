@@ -20,41 +20,45 @@ export default function DownloadPage() {
   } = useApp();
 
   const logEndRef = useRef<HTMLDivElement>(null);
-  const startedRef = useRef(false);
-
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    startDownload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [progressLog]);
 
-  const startDownload = async () => {
+  const handleStart = async () => {
+    const selectedAlbums = albums.filter((a) => selectedAlbumIds.has(a.id));
+    console.log("[FRONTEND] handleStart called, selectedAlbums:", selectedAlbums.length);
+    if (selectedAlbums.length === 0) {
+      console.log("[FRONTEND] No albums, returning early");
+      return;
+    }
+
+    console.log("[FRONTEND] Clearing progress and setting isDownloading=true");
     clearProgress();
     setResult(null);
     setIsDownloading(true);
 
-    const selectedAlbums = albums.filter((a) => selectedAlbumIds.has(a.id));
-
-    // Listen for progress events
+    console.log("[FRONTEND] About to listen for download-progress events...");
     const unlisten = await listen<DownloadProgress>(
       "download-progress",
       (event) => {
+        console.log("[FRONTEND] Progress event received:", event.payload);
         addProgress(event.payload);
       }
     );
+    console.log("[FRONTEND] Event listener registered");
 
     try {
+      console.log("[FRONTEND] About to invoke start_download with albums:", selectedAlbums.map(a => ({id: a.id, title: a.title})));
+      console.log("[FRONTEND] Settings:", settings);
       const res = await invoke<DownloadResult>("start_download", {
         albums: selectedAlbums,
         settings,
       });
+      console.log("[FRONTEND] invoke returned:", res);
       setResult(res);
     } catch (err) {
+      console.error("[FRONTEND] invoke threw error:", err);
       setResult({
         total_albums: selectedAlbums.length,
         total_images: 0,
@@ -71,30 +75,35 @@ export default function DownloadPage() {
         status: `Error: ${err}`,
       });
     } finally {
+      console.log("[FRONTEND] invoke completed (success or error), cleaning up");
       setIsDownloading(false);
       unlisten();
     }
   };
 
   const handleCancel = async () => {
+    console.log("[FRONTEND] Cancel clicked");
     try {
       await invoke("cancel_download");
-    } catch (_) {
-      // ignore
+    } catch (err) {
+      console.error("[FRONTEND] cancel_download error:", err);
     }
+    // Force stop the UI state
+    setIsDownloading(false);
   };
 
-  // Current progress summary
   const lastProgress = progressLog[progressLog.length - 1];
   const downloadedCount = progressLog.filter(
     (p) => p.status === "downloaded"
   ).length;
   const skippedCount = progressLog.filter(
-    (p) => p.status === "skipped"
+    (p) => p.status.startsWith("skipped")
   ).length;
   const failedCount = progressLog.filter((p) =>
     p.status.startsWith("failed")
   ).length;
+
+  const hasStarted = progressLog.length > 0 || result != null;
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -103,14 +112,27 @@ export default function DownloadPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-800">
-              {isDownloading ? "Downloading..." : "Download Complete"}
+              {isDownloading
+                ? "Downloading..."
+                : result
+                ? "Download Complete"
+                : "Ready to Download"}
             </h1>
             <p className="text-sm text-gray-500">
-              {downloadedCount} downloaded, {skippedCount} skipped
-              {failedCount > 0 && `, ${failedCount} failed`}
+              {hasStarted
+                ? `${downloadedCount} downloaded, ${skippedCount} skipped${
+                    failedCount > 0 ? `, ${failedCount} failed` : ""
+                  }`
+                : `${selectedAlbumIds.size} albums selected`}
             </p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => setPage("albums")}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+            >
+              Back to Albums
+            </button>
             {isDownloading ? (
               <button
                 onClick={handleCancel}
@@ -120,10 +142,11 @@ export default function DownloadPage() {
               </button>
             ) : (
               <button
-                onClick={() => setPage("albums")}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                onClick={handleStart}
+                disabled={selectedAlbumIds.size === 0}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                Back to Albums
+                {result ? "Download Again" : "Start Download"}
               </button>
             )}
           </div>
@@ -172,28 +195,41 @@ export default function DownloadPage() {
         </div>
       )}
 
+      {/* Empty state */}
+      {!hasStarted && !isDownloading && (
+        <div className="flex items-center justify-center flex-1">
+          <p className="text-gray-400">
+            Click "Start Download" to begin
+          </p>
+        </div>
+      )}
+
       {/* Log */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 font-mono text-xs">
-        {progressLog.map((p, i) => (
-          <div
-            key={i}
-            className={`py-0.5 ${
+      {hasStarted && (
+        <div className="flex-1 overflow-y-auto px-6 py-4 font-mono text-xs">
+          {progressLog.map((p, i) => (
+            <div
+              key={i}
+              className={`py-0.5 ${
               p.status === "downloaded"
                 ? "text-green-700"
-                : p.status === "skipped"
-                ? "text-gray-400"
+                : p.status.startsWith("skipped")
+                ? "text-yellow-600"
                 : p.status.startsWith("failed")
                 ? "text-red-600"
+                : p.status.startsWith("scanning")
+                ? "text-blue-600 font-medium"
                 : "text-gray-600"
-            }`}
-          >
-            [{p.album_index}/{p.album_total}] {p.album_title} &mdash;{" "}
-            {p.filename ? `${p.filename}: ` : ""}
-            {p.status}
-          </div>
-        ))}
-        <div ref={logEndRef} />
-      </div>
+              }`}
+            >
+              [{p.album_index}/{p.album_total}] {p.album_title} &mdash;{" "}
+              {p.filename ? `${p.filename}: ` : ""}
+              {p.status}
+            </div>
+          ))}
+          <div ref={logEndRef} />
+        </div>
+      )}
     </div>
   );
 }

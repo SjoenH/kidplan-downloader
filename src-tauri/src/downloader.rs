@@ -65,7 +65,7 @@ struct AlbumJson {
 }
 
 pub async fn fetch_albums(client: &reqwest::Client) -> Result<Vec<Album>, String> {
-    let base = "https://app.kidplan.com/bilder/album";
+    let base_url = "https://app.kidplan.com/bilder/album";
     let json_url = "https://app.kidplan.com/bilder/GetAlbumsAsJson";
     let mut albums = Vec::new();
     let mut seen_ids = HashSet::new();
@@ -97,11 +97,10 @@ pub async fn fetch_albums(client: &reqwest::Client) -> Result<Vec<Album>, String
             }
             seen_ids.insert(id.clone());
             let raw_url = item.album_url.clone().unwrap_or_default();
-            let album_url = if raw_url.starts_with("http") {
-                raw_url
-            } else {
-                format!("{}{}", base.trim_end_matches("/album"), &raw_url)
-            };
+            
+            // Use normalize_url to properly resolve relative/absolute URLs
+            let album_url = normalize_url(&raw_url, base_url);
+            
             albums.push(Album {
                 id,
                 title: item.title.clone().unwrap_or_else(|| "Untitled".to_string()),
@@ -309,12 +308,15 @@ pub async fn download_albums(
     albums: Vec<Album>,
     settings: DownloadSettings,
 ) -> Result<DownloadResult, String> {
+    eprintln!("[DEBUG] download_albums called with {} albums, settings: {:?}", albums.len(), settings);
+
     let client_guard = state.client.lock().await;
     let client = client_guard
         .as_ref()
         .ok_or("Not logged in")?
         .clone();
     drop(client_guard);
+    eprintln!("[DEBUG] Got client, proceeding...");
 
     let manifest_path = state.manifest_path.lock().await.clone();
     let mut manifest = load_manifest(&manifest_path);
@@ -323,9 +325,28 @@ pub async fn download_albums(
     let mut total_skipped = 0usize;
     let mut total_failed = 0usize;
 
-    // Ensure output directory
-    let out_dir = PathBuf::from(&settings.out_dir);
-    std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
+    // Ensure output directory — resolve relative paths against home dir
+    let out_dir = {
+        let raw = PathBuf::from(&settings.out_dir);
+        if raw.is_absolute() {
+            raw
+        } else {
+            dirs::download_dir()
+                .or_else(dirs::home_dir)
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join(raw)
+        }
+    };
+    eprintln!("[DEBUG] Output directory: {:?}", out_dir);
+    std::fs::create_dir_all(&out_dir).map_err(|e| format!("Failed to create output dir {:?}: {}", out_dir, e))?;
+
+    // Resolve manifest path relative to out_dir
+    let manifest_path = if manifest_path.is_absolute() {
+        manifest_path
+    } else {
+        out_dir.join(manifest_path.file_name().unwrap_or_default())
+    };
+    eprintln!("[DEBUG] Manifest path: {:?}", manifest_path);
 
     // Ensure manifest file exists
     if !manifest_path.exists() {
@@ -341,14 +362,58 @@ pub async fn download_albums(
             }
         }
 
+        eprintln!("[DEBUG] Fetching album {}/{}: {} -> {}", album_idx + 1, albums.len(), album.title, album.url);
+
         // Fetch album page
         let resp = client
             .get(&album.url)
             .send()
             .await
             .map_err(|e| e.to_string())?;
+        let status = resp.status();
+        let final_url = resp.url().to_string();
         let album_html = resp.text().await.map_err(|e| e.to_string())?;
+
+        eprintln!("[DEBUG] Album page response: status={}, final_url={}, html_len={}", status, final_url, album_html.len());
+
+        // Check if we got redirected to a login page
+        let lower_html = album_html.to_lowercase();
+        if lower_html.contains("log in kidplan") || lower_html.contains("id=\"loginform\"") {
+            eprintln!("[DEBUG] WARNING: Album page looks like a login page! Session may have expired.");
+            let _ = app.emit("download-progress", DownloadProgress {
+                album_title: album.title.clone(),
+                album_index: album_idx + 1,
+                album_total: albums.len(),
+                image_index: 0,
+                image_total: 0,
+                filename: String::new(),
+                status: "failed: session expired (redirected to login page)".to_string(),
+            });
+            total_failed += 1;
+            continue;
+        }
+
         let image_urls = extract_image_urls(&album_html, &album.url);
+
+        eprintln!("[DEBUG] Extracted {} image URLs from album '{}'", image_urls.len(), album.title);
+        if image_urls.is_empty() {
+            eprintln!("[DEBUG] HTML first 2000 chars: {}", &album_html[..album_html.len().min(2000)]);
+        } else {
+            for (i, u) in image_urls.iter().take(3).enumerate() {
+                eprintln!("[DEBUG]   sample url[{}]: {}", i, u);
+            }
+        }
+
+        // Emit album start event
+        let _ = app.emit("download-progress", DownloadProgress {
+            album_title: album.title.clone(),
+            album_index: album_idx + 1,
+            album_total: albums.len(),
+            image_index: 0,
+            image_total: image_urls.len(),
+            filename: String::new(),
+            status: format!("scanning: found {} images", image_urls.len()),
+        });
 
         let limited = if settings.limit_per_album > 0 && image_urls.len() > settings.limit_per_album {
             &image_urls[..settings.limit_per_album]
@@ -371,6 +436,15 @@ pub async fn download_albums(
             // Dedupe
             if seen_urls.contains(image_url) {
                 total_skipped += 1;
+                let _ = app.emit("download-progress", DownloadProgress {
+                    album_title: album.title.clone(),
+                    album_index: album_idx + 1,
+                    album_total: albums.len(),
+                    image_index: img_idx + 1,
+                    image_total: limited.len(),
+                    filename: String::new(),
+                    status: "skipped: duplicate".to_string(),
+                });
                 continue;
             }
             seen_urls.insert(image_url.clone());
@@ -380,13 +454,28 @@ pub async fn download_albums(
             if let Some(ref id) = image_id {
                 if manifest.contains(id) {
                     total_skipped += 1;
+                    let _ = app.emit("download-progress", DownloadProgress {
+                        album_title: album.title.clone(),
+                        album_index: album_idx + 1,
+                        album_total: albums.len(),
+                        image_index: img_idx + 1,
+                        image_total: limited.len(),
+                        filename: format!("id-{}", id),
+                        status: "skipped: already downloaded".to_string(),
+                    });
                     continue;
                 }
             }
 
             // Build filename
             let filename = if let Some(ref id) = image_id {
-                format!("id-{}{}", id, get_image_extension(image_url))
+                // ID already contains extension (e.g., "abc123.jpeg"), so just use it as-is
+                if id.contains('.') {
+                    format!("id-{}", id)
+                } else {
+                    // Fallback: add extension if ID doesn't have one
+                    format!("id-{}{}", id, get_image_extension(image_url))
+                }
             } else {
                 let digest = format!("{:x}", md5_hash(image_url));
                 format!("image-{:04}-{}.jpg", img_idx + 1, &digest[..10])
@@ -421,11 +510,13 @@ pub async fn download_albums(
             }
 
             // Download
+            eprintln!("[DEBUG] Downloading image {}/{} from album '{}': {}", img_idx + 1, limited.len(), album.title, image_url);
             match client.get(image_url).send().await {
                 Ok(resp) => {
                     if resp.status().is_success() {
                         match resp.bytes().await {
                             Ok(bytes) => {
+                                eprintln!("[DEBUG] Got {} bytes, writing to {:?}", bytes.len(), dest_path);
                                 if let Err(e) = std::fs::write(&dest_path, &bytes) {
                                     total_failed += 1;
                                     let _ = app.emit("download-progress", DownloadProgress {
