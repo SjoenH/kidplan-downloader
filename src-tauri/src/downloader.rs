@@ -1,7 +1,7 @@
 use crate::{Album, AppState, Credentials, DownloadProgress, DownloadResult, DownloadSettings, Kindergarten};
 use scraper::{Html, Selector};
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tauri::{AppHandle, Emitter};
 use urlencoding::encode;
 
@@ -282,26 +282,6 @@ fn slugify(value: &str) -> String {
     collapsed.trim_matches('-').to_string()
 }
 
-fn load_manifest(path: &Path) -> HashSet<String> {
-    let mut entries = HashSet::new();
-    if let Ok(content) = std::fs::read_to_string(path) {
-        for line in content.lines() {
-            let trimmed = line.trim();
-            if !trimmed.is_empty() {
-                entries.insert(trimmed.to_string());
-            }
-        }
-    }
-    entries
-}
-
-fn append_manifest(path: &Path, entry: &str) {
-    use std::io::Write;
-    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
-        let _ = writeln!(f, "{}", entry);
-    }
-}
-
 pub async fn download_albums(
     app: &AppHandle,
     state: &AppState,
@@ -318,8 +298,6 @@ pub async fn download_albums(
     drop(client_guard);
     eprintln!("[DEBUG] Got client, proceeding...");
 
-    let manifest_path = state.manifest_path.lock().await.clone();
-    let mut manifest = load_manifest(&manifest_path);
     let mut seen_urls: HashSet<String> = HashSet::new();
     let mut total_downloaded = 0usize;
     let mut total_skipped = 0usize;
@@ -339,19 +317,6 @@ pub async fn download_albums(
     };
     eprintln!("[DEBUG] Output directory: {:?}", out_dir);
     std::fs::create_dir_all(&out_dir).map_err(|e| format!("Failed to create output dir {:?}: {}", out_dir, e))?;
-
-    // Resolve manifest path relative to out_dir
-    let manifest_path = if manifest_path.is_absolute() {
-        manifest_path
-    } else {
-        out_dir.join(manifest_path.file_name().unwrap_or_default())
-    };
-    eprintln!("[DEBUG] Manifest path: {:?}", manifest_path);
-
-    // Ensure manifest file exists
-    if !manifest_path.exists() {
-        let _ = std::fs::File::create(&manifest_path);
-    }
 
     for (album_idx, album) in albums.iter().enumerate() {
         // Check cancel flag
@@ -449,25 +414,8 @@ pub async fn download_albums(
             }
             seen_urls.insert(image_url.clone());
 
-            // Manifest check
-            let image_id = extract_image_id(image_url);
-            if let Some(ref id) = image_id {
-                if manifest.contains(id) {
-                    total_skipped += 1;
-                    let _ = app.emit("download-progress", DownloadProgress {
-                        album_title: album.title.clone(),
-                        album_index: album_idx + 1,
-                        album_total: albums.len(),
-                        image_index: img_idx + 1,
-                        image_total: limited.len(),
-                        filename: format!("id-{}", id),
-                        status: "skipped: already downloaded".to_string(),
-                    });
-                    continue;
-                }
-            }
-
             // Build filename
+            let image_id = extract_image_id(image_url);
             let filename = if let Some(ref id) = image_id {
                 // ID already contains extension (e.g., "abc123.jpeg"), so just use it as-is
                 if id.contains('.') {
@@ -485,12 +433,6 @@ pub async fn download_albums(
 
             // Skip if exists
             if dest_path.exists() {
-                if let Some(ref id) = image_id {
-                    if !manifest.contains(id) {
-                        append_manifest(&manifest_path, id);
-                        manifest.insert(id.clone());
-                    }
-                }
                 total_skipped += 1;
                 let _ = app.emit("download-progress", DownloadProgress {
                     album_title: album.title.clone(),
@@ -499,7 +441,7 @@ pub async fn download_albums(
                     image_index: img_idx + 1,
                     image_total: limited.len(),
                     filename: filename.clone(),
-                    status: "skipped".to_string(),
+                    status: "skipped: file exists".to_string(),
                 });
                 continue;
             }
@@ -531,10 +473,6 @@ pub async fn download_albums(
                                     continue;
                                 }
                                 total_downloaded += 1;
-                                if let Some(ref id) = image_id {
-                                    append_manifest(&manifest_path, id);
-                                    manifest.insert(id.clone());
-                                }
                                 let _ = app.emit("download-progress", DownloadProgress {
                                     album_title: album.title.clone(),
                                     album_index: album_idx + 1,
@@ -586,9 +524,6 @@ pub async fn download_albums(
             }
         }
     }
-
-    // Update state manifest
-    *state.manifest.lock().await = manifest;
 
     Ok(DownloadResult {
         total_albums: albums.len(),

@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
-use std::path::PathBuf;
 
 pub mod downloader;
 
@@ -66,8 +64,6 @@ pub struct DownloadResult {
 pub struct AppState {
     pub client: tokio::sync::Mutex<Option<reqwest::Client>>,
     pub cookie_jar: std::sync::Arc<reqwest::cookie::Jar>,
-    pub manifest: tokio::sync::Mutex<HashSet<String>>,
-    pub manifest_path: tokio::sync::Mutex<PathBuf>,
     pub cancel_flag: tokio::sync::Mutex<bool>,
 }
 
@@ -77,8 +73,6 @@ impl AppState {
         Self {
             client: tokio::sync::Mutex::new(None),
             cookie_jar: jar,
-            manifest: tokio::sync::Mutex::new(HashSet::new()),
-            manifest_path: tokio::sync::Mutex::new(PathBuf::from("kidplan-manifest.txt")),
             cancel_flag: tokio::sync::Mutex::new(false),
         }
     }
