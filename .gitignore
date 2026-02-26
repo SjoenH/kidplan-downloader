@@ -1,13 +1,33 @@
-.env
+# Downloaded photos
 kidplan-albums/
+
+# Legacy manifest (no longer used)
 kidplan-manifest.txt
+
+# Environment variables
+.env
+
+# macOS
 .DS_Store
+
+# Python (legacy)
 .ruff_cache/
 .venv/
+__pycache__/
+*.pyc
 
 # Node
 node_modules/
 dist/
+.vite/
 
 # Rust / Tauri
 src-tauri/target/
+src-tauri/WixTools/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

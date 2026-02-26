@@ -93,7 +93,6 @@ npm run tauri build
 ```
 .
 ├── src/                    # Frontend (React + TypeScript)
-│   ├── components/
 │   ├── context/           # React Context for state management
 │   ├── i18n/              # Internasjonalisering
 │   ├── pages/             # Login, Albums, Download, Settings
@@ -238,7 +237,6 @@ npm run tauri build
 ```
 .
 ├── src/                    # Frontend (React + TypeScript)
-│   ├── components/
 │   ├── context/           # React Context for state management
 │   ├── i18n/              # Internationalization
 │   ├── pages/             # Login, Albums, Download, Settings
