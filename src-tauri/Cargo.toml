@@ -27,3 +27,8 @@ dirs = "5"
 tauri-plugin-store = "2.4.2"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-updater = "2.10.0"
+
+# Override glib to fix security vulnerability GHSA-wrw7-89jp-8q8g
+# This only affects Linux builds (gtk-rs dependency)
+[target.'cfg(target_os = "linux")'.dependencies]
+glib = "0.20"
