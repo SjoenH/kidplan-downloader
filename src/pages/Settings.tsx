@@ -1,7 +1,19 @@
 import { useApp } from "../context/AppContext";
+import { open } from "@tauri-apps/plugin-dialog";
 
 export default function SettingsPage() {
   const { settings, setSettings, setPage } = useApp();
+
+  const handleBrowse = async () => {
+    const selected = await open({
+      directory: true,
+      multiple: false,
+      title: "Select Download Directory",
+    });
+    if (selected && typeof selected === "string") {
+      setSettings({ ...settings, out_dir: selected });
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -25,16 +37,24 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Output directory
             </label>
-            <input
-              type="text"
-              value={settings.out_dir}
-              onChange={(e) =>
-                setSettings({ ...settings, out_dir: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={settings.out_dir}
+                onChange={(e) =>
+                  setSettings({ ...settings, out_dir: e.target.value })
+                }
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                onClick={handleBrowse}
+                className="px-4 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition whitespace-nowrap"
+              >
+                Browse...
+              </button>
+            </div>
             <p className="text-xs text-gray-400 mt-1">
-              Relative to where the app is launched, or an absolute path
+              Default: ~/Downloads/kidplan-albums/
             </p>
           </div>
 
