@@ -1,56 +1,56 @@
 {
-  "types": {
-    "feat": {
-      "description": "A new feature",
-      "title": "Features"
+  "types": [
+    {
+      "type": "feat",
+      "section": "Features"
     },
-    "fix": {
-      "description": "A bug fix",
-      "title": "Bug Fixes"
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
     },
-    "docs": {
-      "description": "Documentation only changes",
-      "title": "Documentation",
+    {
+      "type": "perf",
+      "section": "Performance Improvements"
+    },
+    {
+      "type": "revert",
+      "section": "Reverts"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
       "hidden": true
     },
-    "style": {
-      "description": "Changes that do not affect the meaning of the code",
-      "title": "Styles",
+    {
+      "type": "style",
+      "section": "Styles",
       "hidden": true
     },
-    "refactor": {
-      "description": "A code change that neither fixes a bug nor adds a feature",
-      "title": "Code Refactoring"
-    },
-    "perf": {
-      "description": "A code change that improves performance",
-      "title": "Performance Improvements"
-    },
-    "test": {
-      "description": "Adding missing tests or correcting existing tests",
-      "title": "Tests",
+    {
+      "type": "chore",
+      "section": "Chores",
       "hidden": true
     },
-    "build": {
-      "description": "Changes that affect the build system or external dependencies",
-      "title": "Builds",
+    {
+      "type": "refactor",
+      "section": "Code Refactoring",
       "hidden": true
     },
-    "ci": {
-      "description": "Changes to our CI configuration files and scripts",
-      "title": "Continuous Integrations",
+    {
+      "type": "test",
+      "section": "Tests",
       "hidden": true
     },
-    "chore": {
-      "description": "Other changes that don't modify src or test files",
-      "title": "Chores",
-      "hidden": true
+    {
+      "type": "build",
+      "section": "Build System"
     },
-    "revert": {
-      "description": "Reverts a previous commit",
-      "title": "Reverts"
+    {
+      "type": "ci",
+      "section": "CI",
+      "hidden": true
     }
-  },
+  ],
   "bumpFiles": [
     {
       "filename": "package.json",
@@ -58,7 +58,7 @@
     },
     {
       "filename": "src-tauri/Cargo.toml",
-      "updater": "scripts/cargo-version-updater.js"
+      "updater": "scripts/cargo-version-updater.cjs"
     },
     {
       "filename": "src-tauri/tauri.conf.json",
