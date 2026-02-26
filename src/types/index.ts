@@ -29,6 +29,7 @@ export interface DownloadProgress {
   image_total: number;
   filename: string;
   status: string;
+  error_type?: string;
 }
 
 export interface DownloadResult {

@@ -353,6 +353,7 @@ pub async fn download_albums(
                 image_total: 0,
                 filename: String::new(),
                 status: "failed: session expired (redirected to login page)".to_string(),
+                error_type: Some("session_expired".to_string()),
             });
             total_failed += 1;
             continue;
@@ -378,6 +379,7 @@ pub async fn download_albums(
             image_total: image_urls.len(),
             filename: String::new(),
             status: format!("scanning: found {} images", image_urls.len()),
+            error_type: None,
         });
 
         let limited = if settings.limit_per_album > 0 && image_urls.len() > settings.limit_per_album {
@@ -409,6 +411,7 @@ pub async fn download_albums(
                     image_total: limited.len(),
                     filename: String::new(),
                     status: "skipped: duplicate".to_string(),
+                    error_type: None,
                 });
                 continue;
             }
@@ -442,6 +445,7 @@ pub async fn download_albums(
                     image_total: limited.len(),
                     filename: filename.clone(),
                     status: "skipped: file exists".to_string(),
+                    error_type: None,
                 });
                 continue;
             }
@@ -451,16 +455,45 @@ pub async fn download_albums(
                 tokio::time::sleep(tokio::time::Duration::from_millis(settings.delay_ms)).await;
             }
 
-            // Download
+            // Download with retry logic
             eprintln!("[DEBUG] Downloading image {}/{} from album '{}': {}", img_idx + 1, limited.len(), album.title, image_url);
-            match client.get(image_url).send().await {
-                Ok(resp) => {
-                    if resp.status().is_success() {
-                        match resp.bytes().await {
-                            Ok(bytes) => {
-                                eprintln!("[DEBUG] Got {} bytes, writing to {:?}", bytes.len(), dest_path);
-                                if let Err(e) = std::fs::write(&dest_path, &bytes) {
-                                    total_failed += 1;
+            
+            let max_retries = 3;
+            let mut attempt = 0;
+            let mut download_succeeded = false;
+            
+            while attempt < max_retries && !download_succeeded {
+                if attempt > 0 {
+                    let backoff_ms = 1000 * (1 << (attempt - 1)); // 1s, 2s, 4s
+                    eprintln!("[DEBUG] Retry attempt {}/{} after {} ms backoff", attempt + 1, max_retries, backoff_ms);
+                    tokio::time::sleep(tokio::time::Duration::from_millis(backoff_ms)).await;
+                }
+                
+                attempt += 1;
+                
+                match client.get(image_url).send().await {
+                    Ok(resp) => {
+                        let status = resp.status();
+                        if status.is_success() {
+                            match resp.bytes().await {
+                                Ok(bytes) => {
+                                    eprintln!("[DEBUG] Got {} bytes, writing to {:?}", bytes.len(), dest_path);
+                                    if let Err(e) = std::fs::write(&dest_path, &bytes) {
+                                        total_failed += 1;
+                                        let _ = app.emit("download-progress", DownloadProgress {
+                                            album_title: album.title.clone(),
+                                            album_index: album_idx + 1,
+                                            album_total: albums.len(),
+                                            image_index: img_idx + 1,
+                                            image_total: limited.len(),
+                                            filename: filename.clone(),
+                                            status: format!("failed: file write error - {}", e),
+                                            error_type: Some("write_error".to_string()),
+                                        });
+                                        break; // Don't retry write errors
+                                    }
+                                    total_downloaded += 1;
+                                    download_succeeded = true;
                                     let _ = app.emit("download-progress", DownloadProgress {
                                         album_title: album.title.clone(),
                                         album_index: album_idx + 1,
@@ -468,22 +501,31 @@ pub async fn download_albums(
                                         image_index: img_idx + 1,
                                         image_total: limited.len(),
                                         filename: filename.clone(),
-                                        status: format!("failed: {}", e),
+                                        status: "downloaded".to_string(),
+                                        error_type: None,
                                     });
-                                    continue;
                                 }
-                                total_downloaded += 1;
-                                let _ = app.emit("download-progress", DownloadProgress {
-                                    album_title: album.title.clone(),
-                                    album_index: album_idx + 1,
-                                    album_total: albums.len(),
-                                    image_index: img_idx + 1,
-                                    image_total: limited.len(),
-                                    filename: filename.clone(),
-                                    status: "downloaded".to_string(),
-                                });
+                                Err(e) => {
+                                    eprintln!("[DEBUG] Failed to read response bytes: {}", e);
+                                    if attempt >= max_retries {
+                                        total_failed += 1;
+                                        let _ = app.emit("download-progress", DownloadProgress {
+                                            album_title: album.title.clone(),
+                                            album_index: album_idx + 1,
+                                            album_total: albums.len(),
+                                            image_index: img_idx + 1,
+                                            image_total: limited.len(),
+                                            filename: filename.clone(),
+                                            status: format!("failed: network error reading response - {}", e),
+                                            error_type: Some("network_error".to_string()),
+                                        });
+                                    }
+                                }
                             }
-                            Err(e) => {
+                        } else if status.as_u16() == 429 {
+                            // Rate limited - increase backoff
+                            eprintln!("[DEBUG] Rate limited (429), backing off");
+                            if attempt >= max_retries {
                                 total_failed += 1;
                                 let _ = app.emit("download-progress", DownloadProgress {
                                     album_title: album.title.clone(),
@@ -492,34 +534,72 @@ pub async fn download_albums(
                                     image_index: img_idx + 1,
                                     image_total: limited.len(),
                                     filename: filename.clone(),
-                                    status: format!("failed: {}", e),
+                                    status: "failed: rate limited - try again later".to_string(),
+                                    error_type: Some("rate_limit".to_string()),
                                 });
                             }
+                        } else if status.is_server_error() {
+                            // 5xx errors - retry
+                            eprintln!("[DEBUG] Server error: HTTP {}", status);
+                            if attempt >= max_retries {
+                                total_failed += 1;
+                                let _ = app.emit("download-progress", DownloadProgress {
+                                    album_title: album.title.clone(),
+                                    album_index: album_idx + 1,
+                                    album_total: albums.len(),
+                                    image_index: img_idx + 1,
+                                    image_total: limited.len(),
+                                    filename: filename.clone(),
+                                    status: format!("failed: server error (HTTP {}) - server is down", status),
+                                    error_type: Some("http_5xx".to_string()),
+                                });
+                            }
+                        } else if status.as_u16() == 403 || status.as_u16() == 401 {
+                            // Auth errors - don't retry
+                            total_failed += 1;
+                            let _ = app.emit("download-progress", DownloadProgress {
+                                album_title: album.title.clone(),
+                                album_index: album_idx + 1,
+                                album_total: albums.len(),
+                                image_index: img_idx + 1,
+                                image_total: limited.len(),
+                                filename: filename.clone(),
+                                status: format!("failed: authentication error (HTTP {}) - session expired?", status),
+                                error_type: Some("auth_error".to_string()),
+                            });
+                            break; // Don't retry auth errors
+                        } else {
+                            // Other 4xx errors - don't retry
+                            total_failed += 1;
+                            let _ = app.emit("download-progress", DownloadProgress {
+                                album_title: album.title.clone(),
+                                album_index: album_idx + 1,
+                                album_total: albums.len(),
+                                image_index: img_idx + 1,
+                                image_total: limited.len(),
+                                filename: filename.clone(),
+                                status: format!("failed: HTTP {} - invalid request", status),
+                                error_type: Some("http_4xx".to_string()),
+                            });
+                            break; // Don't retry client errors
                         }
-                    } else {
-                        total_failed += 1;
-                        let _ = app.emit("download-progress", DownloadProgress {
-                            album_title: album.title.clone(),
-                            album_index: album_idx + 1,
-                            album_total: albums.len(),
-                            image_index: img_idx + 1,
-                            image_total: limited.len(),
-                            filename: filename.clone(),
-                            status: format!("failed: HTTP {}", resp.status()),
-                        });
                     }
-                }
-                Err(e) => {
-                    total_failed += 1;
-                    let _ = app.emit("download-progress", DownloadProgress {
-                        album_title: album.title.clone(),
-                        album_index: album_idx + 1,
-                        album_total: albums.len(),
-                        image_index: img_idx + 1,
-                        image_total: limited.len(),
-                        filename: filename.clone(),
-                        status: format!("failed: {}", e),
-                    });
+                    Err(e) => {
+                        eprintln!("[DEBUG] Network request failed: {}", e);
+                        if attempt >= max_retries {
+                            total_failed += 1;
+                            let _ = app.emit("download-progress", DownloadProgress {
+                                album_title: album.title.clone(),
+                                album_index: album_idx + 1,
+                                album_total: albums.len(),
+                                image_index: img_idx + 1,
+                                image_total: limited.len(),
+                                filename: filename.clone(),
+                                status: format!("failed: network error - check internet connection - {}", e),
+                                error_type: Some("network_error".to_string()),
+                            });
+                        }
+                    }
                 }
             }
         }

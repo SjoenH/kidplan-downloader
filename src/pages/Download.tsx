@@ -150,13 +150,23 @@ export default function DownloadPage() {
                 Cancel
               </button>
             ) : (
-              <button
-                onClick={handleStart}
-                disabled={selectedAlbumIds.size === 0}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                {result ? "Download Again" : "Start Download"}
-              </button>
+              <>
+                {failedCount > 0 && result && (
+                  <button
+                    onClick={handleStart}
+                    className="px-4 py-2 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
+                  >
+                    Retry Failed ({failedCount})
+                  </button>
+                )}
+                <button
+                  onClick={handleStart}
+                  disabled={selectedAlbumIds.size === 0}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {result ? "Download Again" : "Start Download"}
+                </button>
+              </>
             )}
           </div>
         </div>

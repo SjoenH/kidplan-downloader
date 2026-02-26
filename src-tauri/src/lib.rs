@@ -50,6 +50,8 @@ pub struct DownloadProgress {
     pub image_total: usize,
     pub filename: String,
     pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
