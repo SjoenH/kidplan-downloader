@@ -20,10 +20,19 @@ export default function DownloadPage() {
   } = useApp();
 
   const logEndRef = useRef<HTMLDivElement>(null);
+  const hasAutoStarted = useRef(false);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [progressLog]);
+
+  // Auto-start download on page load if albums are selected
+  useEffect(() => {
+    if (!hasAutoStarted.current && selectedAlbumIds.size > 0 && !isDownloading && !result) {
+      hasAutoStarted.current = true;
+      handleStart();
+    }
+  }, []);
 
   const handleStart = async () => {
     const selectedAlbums = albums.filter((a) => selectedAlbumIds.has(a.id));
