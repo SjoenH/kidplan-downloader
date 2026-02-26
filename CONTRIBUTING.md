@@ -79,14 +79,11 @@ This will:
 2. Determine new version (major/minor/patch)
 3. Update version in package.json, Cargo.toml, tauri.conf.json
 4. Generate/update CHANGELOG.md
-5. Create a git tag
-6. Commit the changes
+5. Create a git commit and tag
+6. **Push to GitHub with tags**
+7. **Automatically create a GitHub release with CHANGELOG notes**
 
-Then push:
-
-```bash
-git push --follow-tags origin main
-```
+All in one command!
 
 ### Manual Version Override
 
@@ -96,6 +93,14 @@ Force a specific version bump:
 npm run release:patch  # 1.1.0 -> 1.1.1
 npm run release:minor  # 1.1.0 -> 1.2.0
 npm run release:major  # 1.1.0 -> 2.0.0
+```
+
+### Preview Release (Dry Run)
+
+See what would happen without making any changes:
+
+```bash
+npm run release:dry-run
 ```
 
 ## Examples
@@ -124,5 +129,5 @@ git commit -m "style: format code with prettier"
 2. Stage files: `git add .`
 3. Commit with conventional format: `npm run commit` (or `git commit -m "type: message"`)
 4. Push: `git push`
-5. When ready to release: `npm run release`
-6. Push release: `git push --follow-tags origin main`
+5. When ready to release: `npm run release` (creates version, CHANGELOG, tag, pushes, and creates GitHub release automatically!)
+6. Done! Check GitHub releases page for the new release with CHANGELOG notes

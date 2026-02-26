@@ -70,5 +70,8 @@
       "filename": "package.json",
       "type": "json"
     }
-  ]
+  ],
+  "scripts": {
+    "postchangelog": "echo '\n✓ CHANGELOG updated'"
+  }
 }
