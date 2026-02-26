@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/* Configure Tailwind to use system dark mode preference */
+@theme {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+}
+
+/* Minimalistic base styles */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100;
+}

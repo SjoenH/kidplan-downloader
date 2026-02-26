@@ -109,47 +109,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-sm mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1 text-center">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="w-full max-w-sm mx-auto px-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1 text-center">
             {t.loginTitle}
           </h1>
-          <p className="text-gray-500 text-sm mb-6 text-center">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 text-center">
             {t.loginSubtitle}
           </p>
 
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm rounded p-3 mb-4">
+            <div className="bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 text-sm rounded-lg p-3 mb-4 border border-red-200 dark:border-red-900">
               {error}
             </div>
           )}
 
           {step === "credentials" && (
-            <form onSubmit={handleFetchKids} className="space-y-4">
+            <form onSubmit={handleFetchKids} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t.email}
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder={t.emailPlaceholder}
                   required
                   disabled={loading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t.password}
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder={t.passwordPlaceholder}
                   required
                   disabled={loading}
@@ -161,17 +161,17 @@ export default function LoginPage() {
                   id="rememberMe"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2"
+                  className="mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-600"
                   disabled={loading}
                 />
-                <label htmlFor="rememberMe" className="text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="text-sm text-gray-700 dark:text-gray-300">
                   {t.rememberMe}
                 </label>
               </div>
               <button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full bg-blue-600 dark:bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {loading ? t.loggingIn : t.logIn}
               </button>
@@ -179,18 +179,18 @@ export default function LoginPage() {
           )}
 
           {step === "select_kid" && (
-            <form onSubmit={handleSelectKid} className="space-y-4">
-              <p className="text-sm text-gray-600">
+            <form onSubmit={handleSelectKid} className="space-y-5">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t.multipleKindergartens}
               </p>
               <div className="space-y-2">
                 {kindergartens.map((kid) => (
                   <label
                     key={kid.id}
-                    className={`flex items-center p-3 border rounded-md cursor-pointer transition ${
+                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
                       selectedKid?.id === kid.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-blue-500 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/30"
+                        : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700"
                     }`}
                   >
                     <input
@@ -198,10 +198,10 @@ export default function LoginPage() {
                       name="kindergarten"
                       checked={selectedKid?.id === kid.id}
                       onChange={() => setSelectedKid(kid)}
-                      className="mr-3"
+                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-gray-800">{kid.name}</span>
-                    <span className="text-gray-400 text-xs ml-auto">
+                    <span className="text-gray-900 dark:text-gray-100">{kid.name}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-xs ml-auto">
                       ID: {kid.id}
                     </span>
                   </label>
@@ -210,14 +210,14 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !selectedKid}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full bg-blue-600 dark:bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {loading ? t.loggingIn : t.continue}
               </button>
               <button
                 type="button"
                 onClick={() => setStep("credentials")}
-                className="w-full text-gray-500 text-sm hover:text-gray-700"
+                className="w-full text-gray-500 dark:text-gray-400 text-sm hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
                 {t.back}
               </button>

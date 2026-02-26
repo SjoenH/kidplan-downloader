@@ -118,19 +118,19 @@ export default function DownloadPage() {
   const hasStarted = progressLog.length > 0 || result != null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {isDownloading
                 ? t.downloading
                 : result
                 ? t.downloadComplete
                 : t.readyToDownload}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {hasStarted
                 ? `${downloadedCount} ${t.downloaded}, ${skippedCount} ${t.skipped}${
                     failedCount > 0 ? `, ${failedCount} ${t.failed}` : ""
@@ -141,14 +141,14 @@ export default function DownloadPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setPage("albums")}
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               {t.backToAlbums}
             </button>
             {isDownloading ? (
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                className="px-4 py-2 text-sm bg-red-600 dark:bg-red-600 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-700 transition-colors font-medium"
               >
                 {t.cancel}
               </button>
@@ -157,7 +157,7 @@ export default function DownloadPage() {
                 {failedCount > 0 && result && (
                   <button
                     onClick={handleStart}
-                    className="px-4 py-2 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
+                    className="px-4 py-2 text-sm bg-orange-600 dark:bg-orange-600 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-700 transition-colors font-medium"
                   >
                     {t.retryFailed} ({failedCount})
                   </button>
@@ -165,7 +165,7 @@ export default function DownloadPage() {
                 <button
                   onClick={handleStart}
                   disabled={selectedAlbumIds.size === 0}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-4 py-2 text-sm bg-blue-600 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {result ? t.downloadAgain : t.startDownload}
                 </button>
@@ -177,18 +177,18 @@ export default function DownloadPage() {
 
       {/* Overall progress */}
       {lastProgress && isDownloading && (
-        <div className="bg-white border-b border-gray-100 px-6 py-3">
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-gray-700 font-medium truncate">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-3">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-gray-700 dark:text-gray-300 font-medium truncate">
               {lastProgress.album_title}
             </span>
-            <span className="text-gray-400 shrink-0 ml-2">
+            <span className="text-gray-400 dark:text-gray-500 shrink-0 ml-2">
               {t.albumProgress} {lastProgress.album_index}/{lastProgress.album_total}
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
               style={{
                 width: `${
                   lastProgress.album_total > 0
@@ -204,11 +204,11 @@ export default function DownloadPage() {
 
       {/* Result summary */}
       {result && !isDownloading && (
-        <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-md p-4">
-          <h3 className="font-medium text-green-800 mb-2">
+        <div className="mx-6 mt-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-lg p-4">
+          <h3 className="font-medium text-green-800 dark:text-green-400 mb-2">
             {t.downloadFinished}
           </h3>
-          <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
+          <div className="grid grid-cols-2 gap-2 text-sm text-green-700 dark:text-green-500">
             <div>{t.totalAlbums}: {result.total_albums}</div>
             <div>{t.totalImages}: {result.total_images}</div>
             <div>{t.skipped.charAt(0).toUpperCase() + t.skipped.slice(1)}: {result.skipped}</div>
@@ -220,7 +220,7 @@ export default function DownloadPage() {
       {/* Empty state */}
       {!hasStarted && !isDownloading && (
         <div className="flex items-center justify-center flex-1">
-          <p className="text-gray-400">
+          <p className="text-gray-400 dark:text-gray-500">
             {t.clickStartDownload}
           </p>
         </div>
@@ -234,14 +234,14 @@ export default function DownloadPage() {
               key={i}
               className={`py-0.5 ${
               p.status === "downloaded"
-                ? "text-green-700"
+                ? "text-green-700 dark:text-green-500"
                 : p.status.startsWith("skipped")
-                ? "text-yellow-600"
+                ? "text-yellow-600 dark:text-yellow-500"
                 : p.status.startsWith("failed")
-                ? "text-red-600"
+                ? "text-red-600 dark:text-red-500"
                 : p.status.startsWith("scanning")
-                ? "text-blue-600 font-medium"
-                : "text-gray-600"
+                ? "text-blue-600 dark:text-blue-500 font-medium"
+                : "text-gray-600 dark:text-gray-400"
               }`}
             >
               [{p.album_index}/{p.album_total}] {p.album_title} &mdash;{" "}
