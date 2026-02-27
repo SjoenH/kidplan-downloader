@@ -1,2 +1,8 @@
-# Run type checking before commit
-npm run build
+# Run Biome formatting for frontend
+npm run format
+
+# Run Biome linting for frontend
+npm run lint
+
+# Run Clippy for Rust
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
