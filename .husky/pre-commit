@@ -1,3 +1,6 @@
+# Run Biome formatting for frontend
+npm run format
+
 # Run Biome linting for frontend
 npm run lint
 
