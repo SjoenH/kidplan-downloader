@@ -8,10 +8,10 @@
 
 /* Minimalistic base styles */
 * {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100;
+	@apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100;
 }

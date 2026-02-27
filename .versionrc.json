@@ -1,77 +1,77 @@
 {
-  "types": [
-    {
-      "type": "feat",
-      "section": "Features"
-    },
-    {
-      "type": "fix",
-      "section": "Bug Fixes"
-    },
-    {
-      "type": "perf",
-      "section": "Performance Improvements"
-    },
-    {
-      "type": "revert",
-      "section": "Reverts"
-    },
-    {
-      "type": "docs",
-      "section": "Documentation",
-      "hidden": true
-    },
-    {
-      "type": "style",
-      "section": "Styles",
-      "hidden": true
-    },
-    {
-      "type": "chore",
-      "section": "Chores",
-      "hidden": true
-    },
-    {
-      "type": "refactor",
-      "section": "Code Refactoring",
-      "hidden": true
-    },
-    {
-      "type": "test",
-      "section": "Tests",
-      "hidden": true
-    },
-    {
-      "type": "build",
-      "section": "Build System"
-    },
-    {
-      "type": "ci",
-      "section": "CI",
-      "hidden": true
-    }
-  ],
-  "bumpFiles": [
-    {
-      "filename": "package.json",
-      "type": "json"
-    },
-    {
-      "filename": "src-tauri/Cargo.toml",
-      "updater": "scripts/cargo-version-updater.cjs"
-    },
-    {
-      "filename": "src-tauri/tauri.conf.json",
-      "type": "json"
-    }
-  ],
-  "packageFiles": [
-    {
-      "filename": "package.json",
-      "type": "json"
-    }
-  ],
-  "scripts": {
-    "postchangelog": "echo '\n✓ CHANGELOG updated'"
-  }
+	"types": [
+		{
+			"type": "feat",
+			"section": "Features"
+		},
+		{
+			"type": "fix",
+			"section": "Bug Fixes"
+		},
+		{
+			"type": "perf",
+			"section": "Performance Improvements"
+		},
+		{
+			"type": "revert",
+			"section": "Reverts"
+		},
+		{
+			"type": "docs",
+			"section": "Documentation",
+			"hidden": true
+		},
+		{
+			"type": "style",
+			"section": "Styles",
+			"hidden": true
+		},
+		{
+			"type": "chore",
+			"section": "Chores",
+			"hidden": true
+		},
+		{
+			"type": "refactor",
+			"section": "Code Refactoring",
+			"hidden": true
+		},
+		{
+			"type": "test",
+			"section": "Tests",
+			"hidden": true
+		},
+		{
+			"type": "build",
+			"section": "Build System"
+		},
+		{
+			"type": "ci",
+			"section": "CI",
+			"hidden": true
+		}
+	],
+	"bumpFiles": [
+		{
+			"filename": "package.json",
+			"type": "json"
+		},
+		{
+			"filename": "src-tauri/Cargo.toml",
+			"updater": "scripts/cargo-version-updater.cjs"
+		},
+		{
+			"filename": "src-tauri/tauri.conf.json",
+			"type": "json"
+		}
+	],
+	"packageFiles": [
+		{
+			"filename": "package.json",
+			"type": "json"
+		}
+	],
+	"scripts": {
+		"postchangelog": "echo '\n✓ CHANGELOG updated'"
+	}
 }

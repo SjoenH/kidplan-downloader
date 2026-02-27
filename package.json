@@ -1,53 +1,56 @@
 {
-  "name": "kidplan-downloader",
-  "version": "1.1.0",
-  "private": true,
-  "type": "module",
-  "description": "Desktop app for downloading Kidplan kindergarten photo albums",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "tauri": "tauri",
-    "prepare": "husky",
-    "commit": "cz",
-    "release": "standard-version && git push --follow-tags origin main && npm run release:github",
-    "release:minor": "standard-version --release-as minor && git push --follow-tags origin main && npm run release:github",
-    "release:major": "standard-version --release-as major && git push --follow-tags origin main && npm run release:github",
-    "release:patch": "standard-version --release-as patch && git push --follow-tags origin main && npm run release:github",
-    "release:github": "bash scripts/github-release.sh",
-    "release:dry-run": "standard-version --dry-run"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-dialog": "^2.6.0",
-    "@tauri-apps/plugin-os": "^2.3.2",
-    "@tauri-apps/plugin-process": "^2.3.1",
-    "@tauri-apps/plugin-store": "^2.4.2",
-    "@tauri-apps/plugin-updater": "^2.10.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.1"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^20.4.2",
-    "@commitlint/config-conventional": "^20.4.2",
-    "@tailwindcss/vite": "^4.2.1",
-    "@tauri-apps/cli": "^2.10.0",
-    "@types/node": "^25.3.1",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
-    "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0",
-    "husky": "^9.1.7",
-    "standard-version": "^9.5.0",
-    "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3",
-    "vite": "^6.4.1"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  }
+	"name": "kidplan-downloader",
+	"version": "1.1.0",
+	"private": true,
+	"type": "module",
+	"description": "Desktop app for downloading Kidplan kindergarten photo albums",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"tauri": "tauri",
+		"prepare": "husky",
+		"commit": "cz",
+		"release": "standard-version && git push --follow-tags origin main && npm run release:github",
+		"release:minor": "standard-version --release-as minor && git push --follow-tags origin main && npm run release:github",
+		"release:major": "standard-version --release-as major && git push --follow-tags origin main && npm run release:github",
+		"release:patch": "standard-version --release-as patch && git push --follow-tags origin main && npm run release:github",
+		"release:github": "bash scripts/github-release.sh",
+		"release:dry-run": "standard-version --dry-run"
+	},
+	"dependencies": {
+		"@tauri-apps/api": "^2.10.1",
+		"@tauri-apps/plugin-dialog": "^2.6.0",
+		"@tauri-apps/plugin-os": "^2.3.2",
+		"@tauri-apps/plugin-process": "^2.3.1",
+		"@tauri-apps/plugin-store": "^2.4.2",
+		"@tauri-apps/plugin-updater": "^2.10.0",
+		"react": "^19.2.4",
+		"react-dom": "^19.2.4",
+		"react-router-dom": "^7.13.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.4",
+		"@commitlint/cli": "^20.4.2",
+		"@commitlint/config-conventional": "^20.4.2",
+		"@tailwindcss/vite": "^4.2.1",
+		"@tauri-apps/cli": "^2.10.0",
+		"@types/node": "^25.3.1",
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^4.7.0",
+		"commitizen": "^4.3.1",
+		"cz-conventional-changelog": "^3.3.0",
+		"husky": "^9.1.7",
+		"standard-version": "^9.5.0",
+		"tailwindcss": "^4.2.1",
+		"typescript": "^5.9.3",
+		"vite": "^6.4.1"
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
+	}
 }
