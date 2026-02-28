@@ -38,7 +38,8 @@
             "store:allow-save",
             "store:allow-load",
             "os:allow-locale",
-            "updater:default"
+            "updater:default",
+            "opener:default"
           ]
         }
       ]

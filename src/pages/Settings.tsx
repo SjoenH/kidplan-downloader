@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { open } from "@tauri-apps/plugin-dialog";
+import { getName, getVersion } from "@tauri-apps/api/app";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { checkForUpdates } from "../utils/updater";
 import type { Language } from "../i18n/translations";
 
@@ -11,6 +13,22 @@ export default function SettingsPage() {
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [appVersion, setAppVersion] = useState<string>("");
+  const [appName, setAppName] = useState<string>("");
+
+  useEffect(() => {
+    const loadAppInfo = async () => {
+      try {
+        const version = await getVersion();
+        const name = await getName();
+        setAppVersion(version);
+        setAppName(name);
+      } catch (err) {
+        console.error("Failed to load app info:", err);
+      }
+    };
+    loadAppInfo();
+  }, []);
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -30,6 +48,10 @@ export default function SettingsPage() {
     } finally {
       setCheckingUpdates(false);
     }
+  };
+
+  const handleViewReleases = async () => {
+    await openUrl("https://github.com/SjoenH/kidplan-downloader/releases");
   };
 
   return (
@@ -146,6 +168,27 @@ export default function SettingsPage() {
             >
               {checkingUpdates ? t.checkingForUpdates : t.checkForUpdates}
             </button>
+          </div>
+
+          {/* App Info */}
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                <span>{appName}</span>
+                {appVersion && (
+                  <>
+                    <span>•</span>
+                    <span>v{appVersion}</span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={handleViewReleases}
+                className="text-xs text-blue-600 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors underline"
+              >
+                View releases on GitHub
+              </button>
+            </div>
           </div>
         </div>
       </div>
