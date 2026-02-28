@@ -38,5 +38,3 @@ export interface DownloadResult {
   skipped: number;
   failed: number;
 }
-
-export type AppPage = "login" | "albums" | "download" | "settings" | "done";

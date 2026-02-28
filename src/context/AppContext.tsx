@@ -13,15 +13,10 @@ import type {
   DownloadSettings,
   DownloadProgress,
   DownloadResult,
-  AppPage,
 } from "../types";
 import { checkForUpdates } from "../utils/updater";
 
 interface AppContextType {
-  // Navigation
-  page: AppPage;
-  setPage: (page: AppPage) => void;
-
   // Auth
   credentials: Credentials | null;
   setCredentials: (creds: Credentials) => void;
@@ -55,7 +50,6 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [page, setPage] = useState<AppPage>("login");
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [kindergartens, setKindergartens] = useState<Kindergarten[]>([]);
   const [selectedKid, setSelectedKid] = useState<Kindergarten | null>(null);
@@ -113,8 +107,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        page,
-        setPage,
         credentials,
         setCredentials,
         kindergartens,

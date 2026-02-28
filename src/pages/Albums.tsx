@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { Album } from "../types";
@@ -12,8 +13,9 @@ export default function AlbumsPage() {
     toggleAlbum,
     selectAllAlbums,
     deselectAllAlbums,
-    setPage,
   } = useApp();
+  
+  const navigate = useNavigate();
   
   const { t } = useLanguage();
 
@@ -55,13 +57,13 @@ export default function AlbumsPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setPage("settings")}
+              onClick={() => navigate("/settings")}
               className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               {t.settings}
             </button>
             <button
-              onClick={() => setPage("download")}
+              onClick={() => navigate("/download")}
               disabled={selectedCount === 0}
               className="px-4 py-2 text-sm bg-blue-600 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >

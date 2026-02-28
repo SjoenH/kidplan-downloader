@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { DownloadProgress, DownloadResult } from "../types";
@@ -17,8 +18,9 @@ export default function DownloadPage() {
     setResult,
     isDownloading,
     setIsDownloading,
-    setPage,
   } = useApp();
+
+  const navigate = useNavigate();
 
   const { t } = useLanguage();
 
@@ -140,7 +142,7 @@ export default function DownloadPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setPage("albums")}
+              onClick={() => navigate("/albums")}
               className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               {t.backToAlbums}

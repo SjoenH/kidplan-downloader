@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -6,8 +7,9 @@ import { checkForUpdates } from "../utils/updater";
 import type { Language } from "../i18n/translations";
 
 export default function SettingsPage() {
-  const { settings, setSettings, setPage } = useApp();
+  const { settings, setSettings } = useApp();
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
   const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   const handleBrowse = async () => {
@@ -37,7 +39,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t.settingsTitle}</h1>
           <button
-            onClick={() => setPage("albums")}
+            onClick={() => navigate("/albums")}
             className="px-4 py-2 text-sm bg-blue-600 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors font-medium"
           >
             {t.done}

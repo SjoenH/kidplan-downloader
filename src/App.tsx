@@ -1,30 +1,45 @@
-import { AppProvider, useApp } from "./context/AppContext";
+import { MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
 import LoginPage from "./pages/Login";
 import AlbumsPage from "./pages/Albums";
 import DownloadPage from "./pages/Download";
 import SettingsPage from "./pages/Settings";
-
-function Router() {
-  const { page } = useApp();
-
-  switch (page) {
-    case "login":
-      return <LoginPage />;
-    case "albums":
-      return <AlbumsPage />;
-    case "download":
-      return <DownloadPage />;
-    case "settings":
-      return <SettingsPage />;
-    default:
-      return <LoginPage />;
-  }
-}
+import ProtectedRoute from "./components/ProtectedRoute";
+import PageTransition from "./components/PageTransition";
 
 export default function App() {
   return (
     <AppProvider>
-      <Router />
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+          <Route 
+            path="/albums" 
+            element={
+              <ProtectedRoute>
+                <PageTransition><AlbumsPage /></PageTransition>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/download" 
+            element={
+              <ProtectedRoute>
+                <PageTransition><DownloadPage /></PageTransition>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <PageTransition><SettingsPage /></PageTransition>
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </MemoryRouter>
     </AppProvider>
   );
 }

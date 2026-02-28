@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { load, Store } from "@tauri-apps/plugin-store";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { Kindergarten } from "../types";
@@ -12,8 +13,9 @@ export default function LoginPage() {
     kindergartens,
     selectedKid,
     setSelectedKid,
-    setPage,
   } = useApp();
+  
+  const navigate = useNavigate();
   
   const { t } = useLanguage();
 
@@ -95,7 +97,7 @@ export default function LoginPage() {
         credentials: { email, password },
         kidId,
       });
-      setPage("albums");
+      navigate("/albums");
     } catch (err) {
       setError(String(err));
       setLoading(false);
