@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+pub mod database;
 pub mod downloader;
+pub mod face_recognition;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Credentials {
@@ -29,6 +31,14 @@ pub struct DownloadSettings {
     pub out_dir: String,
     pub delay_ms: u64,
     pub limit_per_album: usize,
+    #[serde(default)]
+    pub process_faces: bool,
+    #[serde(default = "default_clustering_threshold")]
+    pub clustering_threshold: f32,
+}
+
+fn default_clustering_threshold() -> f32 {
+    0.6
 }
 
 impl Default for DownloadSettings {
@@ -37,6 +47,8 @@ impl Default for DownloadSettings {
             out_dir: "kidplan-albums".to_string(),
             delay_ms: 200,
             limit_per_album: 0,
+            process_faces: false,
+            clustering_threshold: 0.6,
         }
     }
 }

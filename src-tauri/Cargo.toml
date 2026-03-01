@@ -28,6 +28,15 @@ tauri-plugin-store = "2.4.2"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-updater = "2.10.0"
 
+# Face recognition dependencies
+ort = { version = "2.0.0-rc.11", features = ["half", "download-binaries", "copy-dylibs", "ndarray"] }  # ONNX Runtime
+ndarray = "0.17"                    # N-dimensional arrays
+image = "0.25"                      # Image processing
+rusqlite = { version = "0.31", features = ["bundled"] }  # SQLite database
+anyhow = "1.0"                      # Error handling
+rayon = "1.10"                      # Parallel processing
+chrono = "0.4"                      # Date/time for logging
+
 # Override glib to fix security vulnerability GHSA-wrw7-89jp-8q8g
 # This only affects Linux builds (gtk-rs dependency)
 [target.'cfg(target_os = "linux")'.dependencies]

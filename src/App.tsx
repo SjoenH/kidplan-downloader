@@ -4,6 +4,7 @@ import LoginPage from "./pages/Login";
 import AlbumsPage from "./pages/Albums";
 import DownloadPage from "./pages/Download";
 import SettingsPage from "./pages/Settings";
+import FacesPage from "./pages/Faces";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PageTransition from "./components/PageTransition";
 
@@ -35,6 +36,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <PageTransition><SettingsPage /></PageTransition>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/faces" 
+            element={
+              <ProtectedRoute>
+                <PageTransition><FacesPage /></PageTransition>
               </ProtectedRoute>
             } 
           />

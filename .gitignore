@@ -25,6 +25,9 @@ dist/
 src-tauri/target/
 src-tauri/WixTools/
 
+# ONNX Models (too large for git, download separately)
+src-tauri/models/*.onnx
+
 # IDE
 .vscode/
 .idea/

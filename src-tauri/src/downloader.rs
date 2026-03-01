@@ -1,8 +1,9 @@
 use crate::{Album, AppState, Credentials, DownloadProgress, DownloadResult, DownloadSettings, Kindergarten};
+use crate::face_recognition::FaceRecognizer;
 use scraper::{Html, Selector};
 use std::collections::HashSet;
 use std::path::PathBuf;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use urlencoding::encode;
 
 const LOGIN_URL: &str = "https://app.kidplan.com/LogOn";
@@ -600,6 +601,37 @@ pub async fn download_albums(
                             });
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // Process faces if enabled
+    if settings.process_faces && total_downloaded > 0 {
+        eprintln!("[DEBUG] Face recognition enabled, processing downloaded images...");
+        
+        // Get app data directory for face database
+        if let Some(app_data_dir) = app.path().app_data_dir().ok() {
+            match FaceRecognizer::new(app_data_dir) {
+                Ok(recognizer) => {
+                    // Process each album directory
+                    for album in albums.iter() {
+                        let album_dir = out_dir.join(slugify(&album.title));
+                        if album_dir.exists() {
+                            eprintln!("[DEBUG] Processing faces in album: {}", album.title);
+                            match recognizer.process_album(&album_dir, app).await {
+                                Ok(faces_found) => {
+                                    eprintln!("[DEBUG] Found {} faces in album '{}'", faces_found, album.title);
+                                }
+                                Err(e) => {
+                                    eprintln!("[DEBUG] Error processing faces in album '{}': {}", album.title, e);
+                                }
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("[DEBUG] Failed to initialize face recognizer: {}", e);
                 }
             }
         }

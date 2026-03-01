@@ -57,6 +57,12 @@ export default function AlbumsPage() {
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => navigate("/faces")}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              👥 Faces
+            </button>
+            <button
               onClick={() => navigate("/settings")}
               className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >

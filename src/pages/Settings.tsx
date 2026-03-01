@@ -160,6 +160,70 @@ export default function SettingsPage() {
             </p>
           </div>
 
+          {/* Face Recognition Settings */}
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Face Recognition
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="process-faces"
+                  checked={settings.process_faces || false}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      process_faces: e.target.checked,
+                    })
+                  }
+                  className="mt-1 h-4 w-4 text-blue-600 bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="process-faces" className="ml-3">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Process faces after download
+                  </span>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Automatically detect and group faces in downloaded photos
+                  </p>
+                </label>
+              </div>
+
+              {settings.process_faces && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Clustering Sensitivity
+                  </label>
+                  <input
+                    type="range"
+                    min="0.4"
+                    max="0.8"
+                    step="0.05"
+                    value={settings.clustering_threshold || 0.6}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        clustering_threshold: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    <span>Strict (more groups)</span>
+                    <span className="font-medium text-blue-600 dark:text-blue-500">
+                      {(settings.clustering_threshold || 0.6).toFixed(2)}
+                    </span>
+                    <span>Loose (fewer groups)</span>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                    Lower values create more face groups (stricter matching). Higher values group more faces together.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
             <button
               onClick={handleCheckUpdates}
